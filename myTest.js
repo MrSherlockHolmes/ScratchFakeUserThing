@@ -1,12 +1,12 @@
 // get scratch-api
 
 var Scratch = require("scratch-api");
+var request = require("request");
 
 var username = "";
 var password = "";
 var project_id = -1;
 var cloud;
-
 
 function encrypt(data) {
   var chars = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~�"
@@ -23,12 +23,14 @@ function encrypt(data) {
   return output + "00";
 }
 
-function runGenerator() {
-  var xhttp = new XMLHttpRequest();
-  xhttp.open("GET", "https://randomuser.me/api/", true);
-  xhttp.send();
-  cloud.set("\u2601 randomUser", encrypt(JSON.stringify(xhttp.responseText)));
-  setTimeout(runGenerator, 10000);
+function testIng() {
+  request('https://randomuser.me/api/?nat=gb', function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      console.log("API OK.");
+      cloud.set("\u2601 randomUser", encrypt(JSON.stringify(body)));
+      setInterval(testIng, 10000)
+    }
+  })
 }
 
 Scratch.UserSession.create(username, password, function(e, user) {
@@ -38,6 +40,6 @@ Scratch.UserSession.create(username, password, function(e, user) {
     if (e) { return console.error(e); }
     console.log("Cloud connected.")
     cloud = cloud_;
-    runGenerator();
+    testIng();
   });
 });
